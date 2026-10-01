@@ -1,15 +1,8 @@
 from pathlib import Path
 
 
-def load_txt(file_path: Path):
+def load_txt(file_path: Path) -> str:
 
-    text = file_path.read_text(
+    return file_path.read_text(
         encoding="utf-8"
     )
-
-    return [
-        {
-            "text": text,
-            "page": None
-        }
-    ]

@@ -4,11 +4,6 @@ from chunking import chunk_text
 from loaders.router import load_file
 
 
-DOCUMENTS_DIR = Path(
-    "data/documents"
-)
-
-
 SUPPORTED_EXTENSIONS = {
     ".txt",
     ".pdf",
@@ -16,51 +11,50 @@ SUPPORTED_EXTENSIONS = {
 }
 
 
-def load_documents():
+def load_document(
+    file_path: Path
+):
+
+    if (
+        file_path.suffix.lower()
+        not in SUPPORTED_EXTENSIONS
+    ):
+        return []
+
+    print(
+        f"Loading: {file_path.name}"
+    )
+
+    text = load_file(
+        file_path
+    )
+
+    chunks = chunk_text(
+        text
+    )
 
     documents = []
 
-    for file_path in DOCUMENTS_DIR.iterdir():
+    for index, chunk in enumerate(
+        chunks
+    ):
 
-        if not file_path.is_file():
-            continue
+        documents.append(
+            {
+                "source": file_path.name,
 
-        if file_path.suffix.lower() not in SUPPORTED_EXTENSIONS:
-            continue
+                "chunk": index,
 
-        print(
-            f"Loading: {file_path.name}"
+                "text": chunk,
+
+                "document_type":
+                    file_path.suffix.lower().replace(
+                        ".",
+                        ""
+                    ),
+
+                "page": None
+            }
         )
-
-        pages = load_file(
-            file_path
-        )
-
-        for page_data in pages:
-
-            text = page_data["text"]
-            page_number = page_data["page"]
-
-            chunks = chunk_text(
-                text
-            )
-
-            for chunk_index, chunk in enumerate(
-                chunks
-            ):
-
-                documents.append(
-                    {
-                        "source": file_path.name,
-                        "chunk": chunk_index,
-                        "text": chunk,
-                        "page": page_number,
-                        "document_type":
-                            file_path.suffix.lower().replace(
-                                ".",
-                                ""
-                            )
-                    }
-                )
 
     return documents

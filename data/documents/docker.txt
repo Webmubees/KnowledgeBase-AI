@@ -29,3 +29,5 @@ Docker is commonly used in development, testing, deployment, and CI/CD pipelines
 Docker Compose allows developers to define application services using a YAML configuration file.
 
 A Compose application can contain multiple services such as an API, database, and frontend.
+
+Docker is widely used in modern application deployment.

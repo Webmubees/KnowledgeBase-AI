@@ -3,34 +3,64 @@ from rag import answer_question
 
 def main():
 
-    question = input(
-        "Ask a question: "
-    )
+    question = input("Ask a question: ")
 
     answer, results = answer_question(
         question
     )
 
-    print("\n===== Our Project =====")
+    print("\n===== Answer =====")
     print(answer)
 
     if results is None:
         return
 
-    print("\n===== Sources =====")
-
     metadatas = results["metadatas"][0]
     distances = results["distances"][0]
 
-    for index, metadata in enumerate(
-        metadatas
-    ):
+    print("\n===== Sources =====")
+
+    for index, metadata in enumerate(metadatas):
+
+        source = metadata.get(
+            "source",
+            "unknown"
+        )
+
+        chunk = metadata.get(
+            "chunk",
+            "unknown"
+        )
+
+        page = metadata.get(
+            "page",
+            None
+        )
+
+        document_type = metadata.get(
+            "document_type",
+            "unknown"
+        )
+
+        if page is not None:
+            location = f"page {page}, chunk {chunk}"
+        else:
+            location = f"chunk {chunk}"
 
         print(
-            f"{index + 1}. "
-            f"{metadata['source']} "
-            f"(chunk {metadata['chunk']}) "
-            f"[distance: {distances[index]:.4f}]"
+            f"\n[{index + 1}] {source}"
+        )
+
+        print(
+            f"    Type: {document_type}"
+        )
+
+        print(
+            f"    Location: {location}"
+        )
+
+        print(
+            f"    Distance: {distances[index]:.4f}"
         )
 
 
