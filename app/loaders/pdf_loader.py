@@ -3,7 +3,7 @@ from pathlib import Path
 from pypdf import PdfReader
 
 
-def load_pdf(file_path: Path) -> str:
+def load_pdf(file_path: Path):
 
     reader = PdfReader(
         str(file_path)
@@ -11,13 +11,19 @@ def load_pdf(file_path: Path) -> str:
 
     pages = []
 
-    for page in reader.pages:
+    for page_number, page in enumerate(
+        reader.pages,
+        start=1
+    ):
 
         text = page.extract_text()
 
         if text:
             pages.append(
-                text
+                {
+                    "text": text,
+                    "page": page_number
+                }
             )
 
-    return "\n\n".join(pages)
+    return pages

@@ -18,9 +18,21 @@ def answer_question(question):
         )
 
     documents = results["documents"][0]
+    metadatas = results["metadatas"][0]
+
+    context_parts = []
+
+    for document, metadata in zip(
+        documents,
+        metadatas
+    ):
+
+        context_parts.append(
+            document
+        )
 
     context = "\n\n".join(
-        documents
+        context_parts
     )
 
     answer = generate_answer(

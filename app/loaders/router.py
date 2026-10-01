@@ -5,7 +5,7 @@ from loaders.pdf_loader import load_pdf
 from loaders.docx_loader import load_docx
 
 
-def load_file(file_path: Path) -> str:
+def load_file(file_path: Path):
 
     extension = file_path.suffix.lower()
 

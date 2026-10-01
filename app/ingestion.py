@@ -32,29 +32,35 @@ def load_documents():
             f"Loading: {file_path.name}"
         )
 
-        text = load_file(
+        pages = load_file(
             file_path
         )
 
-        chunks = chunk_text(
-            text
-        )
+        for page_data in pages:
 
-        for index, chunk in enumerate(
-            chunks
-        ):
+            text = page_data["text"]
+            page_number = page_data["page"]
 
-            documents.append(
-                {
-                    "source": file_path.name,
-                    "chunk": index,
-                    "text": chunk,
-                    "document_type":
-                        file_path.suffix.lower().replace(
-                            ".",
-                            ""
-                        )
-                }
+            chunks = chunk_text(
+                text
             )
+
+            for chunk_index, chunk in enumerate(
+                chunks
+            ):
+
+                documents.append(
+                    {
+                        "source": file_path.name,
+                        "chunk": chunk_index,
+                        "text": chunk,
+                        "page": page_number,
+                        "document_type":
+                            file_path.suffix.lower().replace(
+                                ".",
+                                ""
+                            )
+                    }
+                )
 
     return documents

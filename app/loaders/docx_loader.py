@@ -3,7 +3,7 @@ from pathlib import Path
 from docx import Document
 
 
-def load_docx(file_path: Path) -> str:
+def load_docx(file_path: Path):
 
     document = Document(
         str(file_path)
@@ -20,6 +20,13 @@ def load_docx(file_path: Path) -> str:
                 text
             )
 
-    return "\n\n".join(
+    text = "\n\n".join(
         paragraphs
     )
+
+    return [
+        {
+            "text": text,
+            "page": None
+        }
+    ]

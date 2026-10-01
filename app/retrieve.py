@@ -10,6 +10,13 @@ def main():
         n_results=3
     )
 
+    if results is None:
+        print(
+            "\nI don't have enough information "
+            "in the knowledge base."
+        )
+        return
+
     documents = results["documents"][0]
     metadatas = results["metadatas"][0]
     distances = results["distances"][0]
@@ -18,16 +25,26 @@ def main():
 
     for index, document in enumerate(documents):
 
+        metadata = metadatas[index]
+
         print(
             f"\n--- Result {index + 1} ---"
         )
 
         print(
-            f"Source: {metadatas[index]['source']}"
+            f"Source: {metadata.get('source', 'unknown')}"
         )
 
         print(
-            f"Chunk: {metadatas[index]['chunk']}"
+            f"Chunk: {metadata.get('chunk', 'unknown')}"
+        )
+
+        print(
+            f"Page: {metadata.get('page', 'N/A')}"
+        )
+
+        print(
+            f"Type: {metadata.get('document_type', 'unknown')}"
         )
 
         print(

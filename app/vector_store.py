@@ -41,6 +41,7 @@ def add_documents(
     {
         "source": document["source"],
         "chunk": document["chunk"],
+        "page": document["page"],
         "document_type": document["document_type"]
     }
 )
