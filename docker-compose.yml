@@ -1,10 +1,13 @@
 services:
-
   app:
     build: .
     container_name: knowledgebase-ai
-    command: python app/main.py
 
     volumes:
-      - ./chroma_db:/app/chroma_db
+      - ./app:/app/app
       - ./data:/app/data
+      - ./chroma_db:/app/chroma_db
+      - hf_cache:/root/.cache/huggingface
+
+volumes:
+  hf_cache:

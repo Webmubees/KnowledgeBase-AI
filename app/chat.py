@@ -11,7 +11,7 @@ def main():
         question
     )
 
-    print("\n===== Answer =====")
+    print("\n===== Our Project =====")
     print(answer)
 
     if results is None:
