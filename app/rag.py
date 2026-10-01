@@ -9,6 +9,14 @@ def answer_question(question):
         n_results=3
     )
 
+    if results is None:
+        return (
+            "I don't have enough information "
+            "in the knowledge base to answer "
+            "this question.",
+            None
+        )
+
     documents = results["documents"][0]
 
     context = "\n\n".join(

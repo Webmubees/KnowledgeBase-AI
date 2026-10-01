@@ -12,8 +12,10 @@ def main():
     )
 
     print("\n===== Answer =====")
-
     print(answer)
+
+    if results is None:
+        return
 
     print("\n===== Sources =====")
 
