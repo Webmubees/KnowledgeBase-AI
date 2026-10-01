@@ -38,11 +38,12 @@ def add_documents(
         )
 
         metadatas.append(
-            {
-                "source": document["source"],
-                "chunk": document["chunk"]
-            }
-        )
+    {
+        "source": document["source"],
+        "chunk": document["chunk"],
+        "document_type": document["document_type"]
+    }
+)
 
     collection.upsert(
         ids=ids,
