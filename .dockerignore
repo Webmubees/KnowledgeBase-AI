@@ -5,4 +5,5 @@ __pycache__/
 .gitignore
 .env
 chroma_db/
-tests/
+tes
+*.docx

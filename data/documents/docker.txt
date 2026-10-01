@@ -1,0 +1,31 @@
+Docker is a platform used to package applications and their dependencies into containers.
+
+A Docker container provides an isolated environment in which an application can run.
+
+Docker images are templates used to create containers.
+
+A Dockerfile contains instructions for building a Docker image.
+
+Docker Compose can be used to define and run multiple containers as an application.
+
+Docker containers share the host operating system kernel while providing process isolation.
+
+Containers are lightweight compared with traditional virtual machines.
+
+A Docker image is built from a Dockerfile and can be used to create one or more containers.
+
+Docker networks allow containers to communicate with each other.
+
+Docker volumes provide persistent storage for containerized applications.
+
+Container registries are used to store and distribute Docker images.
+
+Docker Hub is a public container registry that hosts Docker images.
+
+Docker commands can be used to build, run, stop, inspect, and manage containers.
+
+Docker is commonly used in development, testing, deployment, and CI/CD pipelines.
+
+Docker Compose allows developers to define application services using a YAML configuration file.
+
+A Compose application can contain multiple services such as an API, database, and frontend.

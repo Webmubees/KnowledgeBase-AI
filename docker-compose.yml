@@ -1,0 +1,6 @@
+services:
+
+  app:
+    build: .
+    container_name: knowledgebase-ai
+    command: python app/main.py
