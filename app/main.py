@@ -1,28 +1,36 @@
 from ingestion import load_documents
+from embeddings import create_embeddings
 
 
 def main():
 
     documents = load_documents()
 
+    texts = [
+        document["text"]
+        for document in documents
+    ]
+
+    embeddings = create_embeddings(texts)
+
     print(
-        f"Created {len(documents)} chunk(s)"
+        f"Created {len(embeddings)} embedding(s)"
     )
 
-    for document in documents:
+    for index, embedding in enumerate(embeddings):
 
         print("\n--------------------")
 
         print(
-            f"Source: {document['source']}"
+            f"Chunk: {index}"
         )
 
         print(
-            f"Chunk: {document['chunk']}"
+            f"Vector size: {len(embedding)}"
         )
 
         print(
-            f"Text: {document['text']}"
+            f"First 5 values: {embedding[:5]}"
         )
 
 
