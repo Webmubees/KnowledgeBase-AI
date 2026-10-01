@@ -2,7 +2,11 @@ from pathlib import Path
 
 from ingestion import load_document
 from embeddings import create_embeddings
-from vector_store import add_documents
+
+from vector_store import (
+    add_documents,
+    delete_document
+)
 
 from document_registry import (
     load_registry,
@@ -22,9 +26,35 @@ def main():
 
     documents_to_index = []
 
-    print(
-        "Checking documents..."
+    # --------------------------------
+    # Find deleted documents
+    # --------------------------------
+
+    current_files = {
+        file_path.name
+        for file_path in DOCUMENTS_DIR.iterdir()
+        if file_path.is_file()
+    }
+
+    registered_files = set(
+        registry.keys()
     )
+
+    deleted_files = (
+        registered_files - current_files
+    )
+
+    for filename in deleted_files:
+
+        print(
+            f"DELETE: {filename}"
+        )
+
+        delete_document(
+            filename
+        )
+
+        del registry[filename]
 
     # --------------------------------
     # Find new / changed documents
@@ -54,6 +84,15 @@ def main():
             f"INDEX: {file_path.name}"
         )
 
+        # Remove old chunks first.
+        # This is important when a document
+        # changes and the new version has
+        # fewer chunks than the old version.
+
+        delete_document(
+            file_path.name
+        )
+
         documents_to_index.append(
             (
                 file_path,
@@ -62,10 +101,14 @@ def main():
         )
 
     # --------------------------------
-    # Nothing to index
+    # Nothing changed
     # --------------------------------
 
     if not documents_to_index:
+
+        save_registry(
+            registry
+        )
 
         print(
             "\nNo documents need indexing."
@@ -76,7 +119,7 @@ def main():
     all_documents = []
 
     # --------------------------------
-    # Load and chunk documents
+    # Load and chunk
     # --------------------------------
 
     for file_path, file_hash in (

@@ -1,1 +1,0 @@
-KnowledgeBase AI uses ChromaDB for vector storage.

@@ -10,6 +10,7 @@ def answer_question(question):
     )
 
     if results is None:
+
         return (
             "I don't have enough information "
             "in the knowledge base to answer "
@@ -22,13 +23,50 @@ def answer_question(question):
 
     context_parts = []
 
-    for document, metadata in zip(
-        documents,
-        metadatas
+    for index, (
+        document,
+        metadata
+    ) in enumerate(
+        zip(
+            documents,
+            metadatas
+        ),
+        start=1
     ):
 
+        source = metadata.get(
+            "source",
+            "unknown"
+        )
+
+        chunk = metadata.get(
+            "chunk",
+            "unknown"
+        )
+
+        page = metadata.get(
+            "page",
+            None
+        )
+
+        if page is not None and page != -1:
+
+            location = (
+                f"{source}, "
+                f"page {page}, "
+                f"chunk {chunk}"
+            )
+
+        else:
+
+            location = (
+                f"{source}, "
+                f"chunk {chunk}"
+            )
+
         context_parts.append(
-            document
+            f"[Source {index}: {location}]\n"
+            f"{document}"
         )
 
     context = "\n\n".join(

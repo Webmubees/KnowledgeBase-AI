@@ -22,7 +22,17 @@ def generate_answer(
 ):
 
     prompt = f"""
-Answer the question using only the provided context.
+You are a knowledge base assistant.
+
+Answer the question using only the information
+provided in the context.
+
+If the context does not contain enough information
+to answer the question, say:
+
+"I don't have enough information in the knowledge base to answer this question."
+
+Do not use outside knowledge.
 
 Context:
 {context}
@@ -30,13 +40,14 @@ Context:
 Question:
 {question}
 
-Give a short and direct answer.
+Answer:
 """
 
     inputs = tokenizer(
         prompt,
         return_tensors="pt",
-        truncation=True
+        truncation=True,
+        max_length=512
     )
 
     outputs = model.generate(
@@ -49,4 +60,4 @@ Give a short and direct answer.
         skip_special_tokens=True
     )
 
-    return answer
+    return answer.strip()

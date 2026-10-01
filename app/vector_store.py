@@ -2,14 +2,12 @@ import chromadb
 
 
 CHROMA_PATH = "chroma_db"
-
 COLLECTION_NAME = "knowledge"
 
 
 client = chromadb.PersistentClient(
     path=CHROMA_PATH
 )
-
 
 collection = client.get_or_create_collection(
     name=COLLECTION_NAME
@@ -22,12 +20,10 @@ def add_documents(
 ):
 
     ids = []
-
     texts = []
-
     metadatas = []
 
-    for index, document in enumerate(documents):
+    for document in documents:
 
         ids.append(
             f"{document['source']}_{document['chunk']}"
@@ -38,13 +34,17 @@ def add_documents(
         )
 
         metadatas.append(
-    {
-        "source": document["source"],
-        "chunk": document["chunk"],
-        "page": document["page"],
-        "document_type": document["document_type"]
-    }
-)
+            {
+                "source": document["source"],
+                "chunk": document["chunk"],
+                "page": (
+                    document["page"]
+                    if document["page"] is not None
+                    else -1
+                ),
+                "document_type": document["document_type"]
+            }
+        )
 
     collection.upsert(
         ids=ids,
@@ -54,16 +54,25 @@ def add_documents(
     )
 
 
+def delete_document(
+    source
+):
+
+    collection.delete(
+        where={
+            "source": source
+        }
+    )
+
+
 def search(
     query_embedding,
     n_results=3
 ):
 
-    results = collection.query(
+    return collection.query(
         query_embeddings=[
             query_embedding.tolist()
         ],
         n_results=n_results
     )
-
-    return results
