@@ -1,17 +1,16 @@
+
 from pathlib import Path
 
-from ingestion import load_document
-from embeddings import create_embeddings
-
-from vector_store import (
-    add_documents,
-    delete_document
-)
-
-from document_registry import (
+from .loaders.router import load_file
+from .chunking import chunk_text
+from .embeddings import create_embeddings
+from .vector_store import add_documents, delete_document
+from .document_registry import (
     load_registry,
     save_registry,
-    is_document_changed
+    get_file_status,
+    update_registry,
+    remove_from_registry
 )
 
 
@@ -20,21 +19,88 @@ DOCUMENTS_DIR = Path(
 )
 
 
+SUPPORTED_EXTENSIONS = {
+    ".txt",
+    ".pdf",
+    ".docx"
+}
+
+
 def main():
+
+    # --------------------------------
+    # 1. Load document registry
+    # --------------------------------
 
     registry = load_registry()
 
-    documents_to_index = []
+    files_to_process = []
+
+    print("Checking documents...\n")
+
 
     # --------------------------------
-    # Find deleted documents
+    # 2. Check current documents
     # --------------------------------
 
-    current_files = {
-        file_path.name
-        for file_path in DOCUMENTS_DIR.iterdir()
-        if file_path.is_file()
-    }
+    current_files = set()
+
+    for file_path in DOCUMENTS_DIR.iterdir():
+
+        if not file_path.is_file():
+            continue
+
+        if file_path.suffix.lower() not in SUPPORTED_EXTENSIONS:
+            continue
+
+        current_files.add(
+            file_path.name
+        )
+
+        status = get_file_status(
+            file_path,
+            registry
+        )
+
+        print(
+            f"{file_path.name}: {status}"
+        )
+
+
+        # ----------------------------
+        # New document
+        # ----------------------------
+
+        if status == "new":
+
+            files_to_process.append(
+                file_path
+            )
+
+
+        # ----------------------------
+        # Modified document
+        # ----------------------------
+
+        elif status == "modified":
+
+            print(
+                f"Removing old vectors for "
+                f"{file_path.name}"
+            )
+
+            delete_document(
+                file_path.name
+            )
+
+            files_to_process.append(
+                file_path
+            )
+
+
+    # --------------------------------
+    # 3. Detect deleted documents
+    # --------------------------------
 
     registered_files = set(
         registry.keys()
@@ -44,10 +110,16 @@ def main():
         registered_files - current_files
     )
 
+
     for filename in deleted_files:
 
         print(
-            f"DELETE: {filename}"
+            f"{filename}: deleted"
+        )
+
+        print(
+            f"Removing vectors for "
+            f"{filename}"
         )
 
         delete_document(
@@ -56,102 +128,116 @@ def main():
 
         del registry[filename]
 
-    # --------------------------------
-    # Find new / changed documents
-    # --------------------------------
-
-    for file_path in DOCUMENTS_DIR.iterdir():
-
-        if not file_path.is_file():
-            continue
-
-        changed, file_hash = (
-            is_document_changed(
-                file_path,
-                registry
-            )
-        )
-
-        if not changed:
-
-            print(
-                f"SKIP: {file_path.name}"
-            )
-
-            continue
-
-        print(
-            f"INDEX: {file_path.name}"
-        )
-
-        # Remove old chunks first.
-        # This is important when a document
-        # changes and the new version has
-        # fewer chunks than the old version.
-
-        delete_document(
-            file_path.name
-        )
-
-        documents_to_index.append(
-            (
-                file_path,
-                file_hash
-            )
-        )
 
     # --------------------------------
-    # Nothing changed
+    # 4. No new/modified documents
     # --------------------------------
 
-    if not documents_to_index:
+    if not files_to_process:
 
         save_registry(
             registry
         )
 
-        print(
-            "\nNo documents need indexing."
-        )
+        if deleted_files:
+
+            print(
+                "\nDeleted documents cleaned "
+                "from the knowledge base."
+            )
+
+        else:
+
+            print(
+                "\nNo new or modified documents."
+            )
 
         return
 
-    all_documents = []
 
     # --------------------------------
-    # Load and chunk
+    # 5. Process documents
     # --------------------------------
-
-    for file_path, file_hash in (
-        documents_to_index
-    ):
-
-        documents = load_document(
-            file_path
-        )
-
-        all_documents.extend(
-            documents
-        )
-
-        registry[file_path.name] = {
-            "hash": file_hash,
-
-            "chunks": len(documents),
-
-            "document_type":
-                file_path.suffix.lower().replace(
-                    ".",
-                    ""
-                )
-        }
 
     print(
-        f"\nLoaded {len(all_documents)} chunks"
+        f"\nProcessing "
+        f"{len(files_to_process)} document(s)..."
     )
 
+    documents = []
+
+
+    for file_path in files_to_process:
+
+        print( f"Loading: {file_path.name}")
+
+        # Load document
+        loaded_data = load_file(file_path)
+
+        # ==================================
+        # PDF
+        # ==================================
+
+        if file_path.suffix.lower() == ".pdf":
+
+            for page_data in loaded_data:
+
+                page_number = page_data["page"]
+
+                text = page_data["text"]
+
+                chunks = chunk_text(
+                    text
+                )
+
+                for index, chunk in enumerate(chunks):
+
+                    documents.append({
+
+                        "source": file_path.name,
+
+                        "chunk": index,
+
+                        "text": chunk,
+
+                        "document_type": "pdf",
+
+                        "page": page_number
+
+                    })
+
+          # ==================================
+        # TXT / DOCX
+        # ==================================
+
+        else:
+
+            text = loaded_data
+
+            chunks = chunk_text(
+                text
+            )
+
+            for index, chunk in enumerate(chunks):
+
+                documents.append({
+
+                    "source": file_path.name,
+
+                    "chunk": index,
+
+                    "text": chunk,
+
+                    "document_type":
+                        file_path.suffix
+                        .lower()
+                        .replace(".", ""),
+
+                    "page": None
+
+                })
     # --------------------------------
-    # Create embeddings
+    # 6. Create embeddings
     # --------------------------------
 
     print(
@@ -160,15 +246,16 @@ def main():
 
     texts = [
         document["text"]
-        for document in all_documents
+        for document in documents
     ]
 
     embeddings = create_embeddings(
         texts
     )
 
+
     # --------------------------------
-    # Store vectors
+    # 7. Store in ChromaDB
     # --------------------------------
 
     print(
@@ -176,22 +263,41 @@ def main():
     )
 
     add_documents(
-        all_documents,
+        documents,
         embeddings
     )
 
+
     # --------------------------------
-    # Save registry
+    # 8. Update registry
+    # --------------------------------
+
+    for file_path in files_to_process:
+
+        update_registry(
+            file_path,
+            registry
+        )
+
+
+    # --------------------------------
+    # 9. Save registry
     # --------------------------------
 
     save_registry(
         registry
     )
 
+
     print(
-        "Indexing completed successfully."
+        "\nIndexing completed successfully."
     )
 
 
+# ------------------------------------
+# Application entry point
+# ------------------------------------
+
 if __name__ == "__main__":
+
     main()

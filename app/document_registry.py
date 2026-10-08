@@ -1,31 +1,21 @@
-import hashlib
 import json
+import hashlib
 from pathlib import Path
 
 
-REGISTRY_PATH = Path(
-    "data/document_registry.json"
-)
+REGISTRY_PATH = Path("chroma_db/document_registry.json")
 
 
-def calculate_file_hash(
-    file_path: Path
-) -> str:
+def calculate_hash(file_path):
 
-    sha256 = hashlib.sha256()
+    hasher = hashlib.sha256()
 
-    with file_path.open("rb") as file:
+    with open(file_path, "rb") as file:
 
-        while True:
+        while chunk := file.read(8192):
+            hasher.update(chunk)
 
-            chunk = file.read(8192)
-
-            if not chunk:
-                break
-
-            sha256.update(chunk)
-
-    return sha256.hexdigest()
+    return hasher.hexdigest()
 
 
 def load_registry():
@@ -33,7 +23,8 @@ def load_registry():
     if not REGISTRY_PATH.exists():
         return {}
 
-    with REGISTRY_PATH.open(
+    with open(
+        REGISTRY_PATH,
         "r",
         encoding="utf-8"
     ) as file:
@@ -48,7 +39,8 @@ def save_registry(registry):
         exist_ok=True
     )
 
-    with REGISTRY_PATH.open(
+    with open(
+        REGISTRY_PATH,
         "w",
         encoding="utf-8"
     ) as file:
@@ -60,25 +52,41 @@ def save_registry(registry):
         )
 
 
-def is_document_changed(
-    file_path: Path,
+def get_file_status(
+    file_path,
     registry
 ):
 
-    current_hash = calculate_file_hash(
+    filename = file_path.name
+
+    if filename not in registry:
+        return "new"
+
+    current_hash = calculate_hash(
         file_path
     )
 
-    filename = file_path.name
+    if registry[filename]["hash"] != current_hash:
+        return "modified"
 
-    previous = registry.get(
-        filename
-    )
+    return "unchanged"
 
-    if previous is None:
-        return True, current_hash
 
-    if previous.get("hash") != current_hash:
-        return True, current_hash
+def update_registry(
+    file_path,
+    registry
+):
 
-    return False, current_hash
+    registry[file_path.name] = {
+        "hash": calculate_hash(file_path)
+    }
+
+
+def remove_from_registry(
+    filename,
+    registry
+):
+
+    if filename in registry:
+
+        del registry[filename]

@@ -1,5 +1,5 @@
-from embeddings import create_embeddings
-from vector_store import search
+from .embeddings import create_embeddings
+from .vector_store import search
 
 
 RELEVANCE_THRESHOLD = 1.2
@@ -7,7 +7,7 @@ RELEVANCE_THRESHOLD = 1.2
 
 def retrieve(
     question,
-    n_results=3
+    n_results=5
 ):
 
     query_embedding = create_embeddings(

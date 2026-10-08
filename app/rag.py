@@ -1,5 +1,5 @@
-from retrieval import retrieve
-from generation import generate_answer
+from .retrieval import retrieve
+from .generation import generate_answer
 
 
 def answer_question(question):

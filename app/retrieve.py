@@ -1,4 +1,4 @@
-from retrieval import retrieve
+from .retrieval import retrieve
 
 
 def main():
