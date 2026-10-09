@@ -14,7 +14,13 @@ from .rag import answer_question
 from .index import main as index_documents
 from .document_registry import (
     load_registry,
-    get_file_status
+    get_file_status,
+    save_registry,
+    remove_from_registry
+)
+
+from .vector_store import (
+    delete_document as delete_document_vectors
 )
 
 
@@ -265,3 +271,71 @@ def list_documents():
         "documents": documents,
         "total": len(documents)
     }
+
+
+
+# --------------------------------
+# Delete document endpoint
+# --------------------------------
+
+@app.delete("/documents/{filename}")
+def delete_uploaded_document(filename: str):
+
+    # Validate the filename to prevent path traversal.
+    if (
+        not filename
+        or filename in {".", ".."}
+        or "/" in filename
+        or "\\" in filename
+        or Path(filename).name != filename
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid filename."
+        )
+
+    extension = Path(filename).suffix.lower()
+
+    if extension not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail="Only PDF, DOCX, and TXT documents are supported."
+        )
+
+    destination = DOCUMENTS_DIR / filename
+
+    registry = load_registry()
+
+    # Check whether the file or registry entry exists.
+    if not destination.is_file() and filename not in registry:
+        raise HTTPException(
+            status_code=404,
+            detail="Document not found."
+        )
+
+    try:
+        # 1. Delete all ChromaDB vectors for this document.
+        delete_document_vectors(filename)
+
+        # 2. Remove the document from the registry.
+        remove_from_registry(filename, registry)
+        save_registry(registry)
+
+        # 3. Delete the original file if it exists.
+        if destination.is_file():
+            destination.unlink()
+
+        return {
+            "filename": filename,
+            "status": "deleted",
+            "message": (
+                "Document, vectors, and registry entry "
+                "removed successfully."
+            )
+        }
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail="Document deletion failed. Check application logs."
+        ) from exc
