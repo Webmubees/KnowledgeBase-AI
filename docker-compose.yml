@@ -8,6 +8,7 @@ services:
     volumes:
       - ./app:/app/app
       - ./data:/app/data
+      - ./frontend:/app/frontend
       - ./chroma_db:/app/chroma_db
       - hf_cache:/root/.cache/huggingface
 

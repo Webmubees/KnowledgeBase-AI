@@ -22,7 +22,8 @@ from .document_registry import (
 from .vector_store import (
     delete_document as delete_document_vectors
 )
-
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 # --------------------------------
 # Application configuration
@@ -32,6 +33,14 @@ app = FastAPI(
     title="KnowledgeBase AI",
     description="Local RAG-based knowledge assistant",
     version="1.0.0"
+)
+
+FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+
+app.mount(
+    "/static",
+    StaticFiles(directory=str(FRONTEND_DIR)),
+    name="static"
 )
 
 DOCUMENTS_DIR = Path("data/documents")
@@ -75,16 +84,9 @@ class ChatResponse(BaseModel):
 # Root endpoint
 # --------------------------------
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 def root():
-    return {
-        "name": "KnowledgeBase AI",
-        "version": "1.0.0",
-        "description": "Local RAG-based knowledge assistant",
-        "status": "running",
-        "docs": "/docs"
-    }
-
+    return FileResponse(FRONTEND_DIR / "index.html")
 
 # --------------------------------
 # Health endpoint

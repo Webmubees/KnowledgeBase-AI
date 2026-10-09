@@ -1,0 +1,104 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A local AI assistant for your documents.">
+    <title>KnowledgeBase AI</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/app.js" defer></script>
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="/">
+            <span class="brand-icon">K</span>
+            <span>KnowledgeBase <span class="accent">AI</span></span>
+        </a>
+        <span class="local-badge"><span class="status-dot"></span> Local knowledge base</span>
+    </header>
+
+    <main class="app-layout">
+        <aside class="sidebar">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">YOUR KNOWLEDGE</p>
+                    <h2>Documents</h2>
+                </div>
+                <span id="document-count" class="count-badge">0</span>
+            </div>
+
+            <form id="upload-form" class="upload-area">
+                <div class="upload-icon">↑</div>
+                <p class="upload-title">Add a document</p>
+                <p class="muted small">PDF, DOCX or TXT · Max 10 MB</p>
+
+                <label for="file-input" class="button button-secondary">
+                    Choose file
+                </label>
+                <input
+                    id="file-input"
+                    type="file"
+                    accept=".pdf,.docx,.txt"
+                    required
+                >
+                <p id="selected-file" class="muted small">No file selected</p>
+                <button id="upload-button" class="button button-primary full-width" type="submit">
+                    Upload and index
+                </button>
+            </form>
+
+            <div class="documents-heading">
+                <h3>Your files</h3>
+                <button id="refresh-documents" class="icon-button" type="button" title="Refresh documents">↻</button>
+            </div>
+
+            <div id="documents-list" class="documents-list">
+                <p class="muted small">Loading documents...</p>
+            </div>
+
+            <p class="sidebar-note">Documents are stored in your local project.</p>
+        </aside>
+
+        <section class="chat-panel">
+            <div class="chat-heading">
+                <div>
+                    <p class="eyebrow">ASK YOUR KNOWLEDGE BASE</p>
+                    <h1>Document Assistant</h1>
+                    <p class="muted">Answers are generated using your indexed documents.</p>
+                </div>
+                <span class="ai-badge">✦ AI assistant</span>
+            </div>
+
+            <div id="chat-messages" class="chat-messages" aria-live="polite">
+                <div class="welcome-card">
+                    <div class="welcome-icon">✦</div>
+                    <h2>Your documents, ready to answer.</h2>
+                    <p>Upload a document and ask a question about its contents.</p>
+                    <div class="suggestion-list">
+                        <button class="suggestion" type="button" data-question="Summarize the main points in my documents">
+                            Summarize my documents <span>↗</span>
+                        </button>
+                        <button class="suggestion" type="button" data-question="What are the most important facts in my documents?">
+                            Find important facts <span>↗</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <form id="chat-form" class="chat-form">
+                <label for="question-input" class="visually-hidden">Your question</label>
+                <textarea
+                    id="question-input"
+                    placeholder="Ask a question about your documents..."
+                    rows="1"
+                    required
+                ></textarea>
+                <button id="send-button" class="send-button" type="submit" aria-label="Send question">↑</button>
+            </form>
+            <p class="input-hint">Answers depend on the information available in your indexed documents.</p>
+            <div id="app-status" class="app-status" role="status"></div>
+        </section>
+    </main>
+</body>
+</html>

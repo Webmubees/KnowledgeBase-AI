@@ -1,3 +1,4 @@
+
 from .retrieval import retrieve
 from .generation import generate_answer
 
@@ -10,7 +11,6 @@ def answer_question(question):
     )
 
     if results is None:
-
         return (
             "I don't have enough information "
             "in the knowledge base to answer "
@@ -19,59 +19,32 @@ def answer_question(question):
         )
 
     documents = results["documents"][0]
-    metadatas = results["metadatas"][0]
 
-    context_parts = []
-
-    for index, (
-        document,
-        metadata
-    ) in enumerate(
-        zip(
-            documents,
-            metadatas
-        ),
-        start=1
-    ):
-
-        source = metadata.get(
-            "source",
-            "unknown"
-        )
-
-        chunk = metadata.get(
-            "chunk",
-            "unknown"
-        )
-
-        page = metadata.get(
-            "page",
+    if not documents:
+        return (
+            "I don't have enough information "
+            "in the knowledge base to answer "
+            "this question.",
             None
         )
 
-        if page is not None and page != -1:
+    # Build the context from document text only.
+    # Source metadata is returned separately for citations.
+    context_parts = []
 
-            location = (
-                f"{source}, "
-                f"page {page}, "
-                f"chunk {chunk}"
-            )
+    for document in documents:
+        if document and document.strip():
+            context_parts.append(document.strip())
 
-        else:
-
-            location = (
-                f"{source}, "
-                f"chunk {chunk}"
-            )
-
-        context_parts.append(
-            f"[Source {index}: {location}]\n"
-            f"{document}"
+    if not context_parts:
+        return (
+            "I don't have enough information "
+            "in the knowledge base to answer "
+            "this question.",
+            None
         )
 
-    context = "\n\n".join(
-        context_parts
-    )
+    context = "\n\n".join(context_parts)
 
     answer = generate_answer(
         question,
