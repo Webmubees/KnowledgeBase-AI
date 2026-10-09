@@ -1,9 +1,8 @@
 from pathlib import Path
 
-from loaders.txt_loader import load_txt
-from loaders.pdf_loader import load_pdf
-from loaders.docx_loader import load_docx
-
+from .txt_loader import load_txt
+from .pdf_loader import load_pdf
+from .docx_loader import load_docx
 
 def load_file(file_path: Path):
 
